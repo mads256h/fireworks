@@ -60,13 +60,19 @@ function updateExplosions(now) {
     // Update sparkles
     for (let i = 0; i < explosion.sparkles.length; i++) {
       const sparkle = explosion.sparkles[i];
+      //
+      const f = (explosion.timeLeft + 1) / 6;
+      ctx.strokeStyle = rgbaToHex(Math.floor(sparkle.color[0] * f), Math.floor(sparkle.color[1] * f), Math.floor(sparkle.color[2] * f));
+      ctx.beginPath();
+      ctx.moveTo(sparkle.oldPosition[0], sparkle.oldPosition[1]);
+      ctx.lineTo(sparkle.position[0], sparkle.position[1]);
+      ctx.stroke();
+
+      sparkle.oldPosition[0] = sparkle.position[0];
+      sparkle.oldPosition[1] = sparkle.position[1];
       sparkle.position[0] += sparkle.direction[0] * deltaTime * 50;
       sparkle.position[1] += sparkle.direction[1] * deltaTime * 50;
       sparkle.direction[1] += 9.82 * deltaTime * 0.01;
-      //
-      const f = (explosion.timeLeft + 1) / 6;
-      ctx.fillStyle = rgbaToHex(Math.floor(sparkle.color[0] * f), Math.floor(sparkle.color[1] * f), Math.floor(sparkle.color[2] * f));
-      ctx.fillRect(sparkle.position[0], sparkle.position[1], 1, 1);
     }
 
     explosion.timeLeft -= deltaTime;
@@ -162,7 +168,7 @@ function spawnExplosion(position) {
         const x = Math.cos(angle)*radius;
 				const y = Math.sin(angle)*radius;
 				const color = i % 2 == 0 ? sparkleColor : sparkleColor2;
-        explosion.sparkles.push({ color: i % 2 == 0 ? sparkleColor : sparkleColor2, position: [position[0], position[1]], direction: [x, y] });
+        explosion.sparkles.push({ color: color, oldPosition: [position[0], position[1]], position: [position[0], position[1]], direction: [x, y] });
       }
 
       canvas.used = true;
