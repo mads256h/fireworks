@@ -41,6 +41,7 @@ updateCanvasSizes();
 let explosionLastTime = null;
 let explosions = [];
 
+
 function updateExplosions(now) {
   if (explosionLastTime === null) {
     explosionLastTime = now;
@@ -57,7 +58,7 @@ function updateExplosions(now) {
     const ctx = explosion.canvas.ctx;
 
     const f = explosion.timeLeft / 5;
-    const directionFactor = deltaTime * 150 * f * f;
+    const directionFactor = deltaTime * 80 * smoothStep(f);
     const gravityFactor = explosion.gravityFactor * deltaTime;
 
     // Update sparkles
@@ -73,15 +74,11 @@ function updateExplosions(now) {
       sparkle.position[0] = newPositionX;
       sparkle.position[1] = newPositionY;
 
-
-      ctx.strokeStyle = rgbaToString(sparkle.color[0] * f, sparkle.color[1] * f, sparkle.color[2] * f);
-      ctx.beginPath();
-      ctx.moveTo(oldPositionX, oldPositionY);
-      ctx.lineTo(newPositionX, newPositionY);
-      ctx.stroke();
+      const color = rgbaToString(sparkle.color[0] * f, sparkle.color[1] * f, sparkle.color[2] * f);
+      drawLine(ctx, oldPositionX, oldPositionY, newPositionX, newPositionY, color, f * 3);
     }
 
-    explosion.gravityFactor += 9.82 * deltaTime * 0.5;
+    explosion.gravityFactor += 9.82 * deltaTime * 1;
     explosion.timeLeft -= deltaTime;
 
     if (explosion.timeLeft <= 0) {
@@ -231,6 +228,40 @@ function updateCanvasSizes() {
       canvas.resizeFunc(canvas);
     }
   }
+}
+
+function drawLine(ctx, x0, y0, x1, y1, color, thickness) {
+  const halfThickness = thickness / 2;
+  const angle = Math.atan2(y1 - y0, x1 - x0);
+  
+  const angle0 = angle + Math.PI / 2;
+  const angle1 = angle - Math.PI / 2;
+  
+  const halfwayX = (x1 + x0) / 2;
+  const halfwayY = (y1 + y0) / 2;
+  
+  const gX0 = Math.cos(angle0) * halfThickness + halfwayX;
+  const gY0 = Math.sin(angle0) * halfThickness + halfwayY;
+  
+  const gX1 = Math.cos(angle1) * halfThickness + halfwayX;
+  const gY1 = Math.sin(angle1) * halfThickness + halfwayY;
+  
+  
+  const gradient = ctx.createLinearGradient(gX0, gY0, gX1, gY1);
+  gradient.addColorStop(0, "black");
+  gradient.addColorStop(0.5, color);
+  gradient.addColorStop(1, "black");
+
+	ctx.strokeStyle = gradient;
+  ctx.lineWidth = thickness;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+}
+
+function smoothStep(x) {
+  return x * x * (3 - 2 * x);
 }
 
 function rgbaToString(r, g, b, a) {
