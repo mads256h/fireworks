@@ -73,7 +73,8 @@ function updateExplosions(now) {
       sparkle.oldPosition[1] = sparkle.position[1];
       sparkle.position[0] += sparkle.direction[0] * deltaTime * 150 * f * f;
       sparkle.position[1] += sparkle.direction[1] * deltaTime * 150 * f * f;
-      sparkle.direction[1] += 9.82 * deltaTime * 0.02;
+      sparkle.position[1] += sparkle.gravityFactor;
+      sparkle.gravityFactor += 9.82 * deltaTime * 0.02;
     }
 
     explosion.timeLeft -= deltaTime;
@@ -172,7 +173,7 @@ function spawnExplosion(position) {
         const x = Math.cos(angle)*radius;
 				const y = Math.sin(angle)*radius;
 				const color = i % 2 == 0 ? sparkleColor : sparkleColor2;
-        explosion.sparkles.push({ color: color, oldPosition: [position[0], position[1]], position: [position[0], position[1]], direction: [x, y] });
+        explosion.sparkles.push({ color: color, oldPosition: [position[0], position[1]], position: [position[0], position[1]], direction: [x, y], gravityFactor: 0 });
       }
 
       canvas.used = true;
