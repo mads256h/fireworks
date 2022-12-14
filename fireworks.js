@@ -57,11 +57,12 @@ function updateExplosions(now) {
     const canvas = explosion.canvas.canvas;
     const ctx = explosion.canvas.ctx;
 
+    const f = explosion.timeLeft / 5;
+
     // Update sparkles
     for (let i = 0; i < explosion.sparkles.length; i++) {
       const sparkle = explosion.sparkles[i];
       //
-      const f = (explosion.timeLeft) / 5;
       ctx.strokeStyle = rgbaToHex(Math.floor(sparkle.color[0] * f), Math.floor(sparkle.color[1] * f), Math.floor(sparkle.color[2] * f));
       ctx.beginPath();
       ctx.moveTo(sparkle.oldPosition[0], sparkle.oldPosition[1]);
@@ -70,9 +71,9 @@ function updateExplosions(now) {
 
       sparkle.oldPosition[0] = sparkle.position[0];
       sparkle.oldPosition[1] = sparkle.position[1];
-      sparkle.position[0] += sparkle.direction[0] * deltaTime * 50;
-      sparkle.position[1] += sparkle.direction[1] * deltaTime * 50;
-      sparkle.direction[1] += 9.82 * deltaTime * 0.01;
+      sparkle.position[0] += sparkle.direction[0] * deltaTime * 150 * f * f;
+      sparkle.position[1] += sparkle.direction[1] * deltaTime * 150 * f * f;
+      sparkle.direction[1] += 9.82 * deltaTime * 0.02;
     }
 
     explosion.timeLeft -= deltaTime;
