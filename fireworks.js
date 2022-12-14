@@ -147,16 +147,31 @@ function updateRocket(now) {
 
   if (now >= nextRocketTime) {
     nextRocketTime = now + rocketConfig.timeBetweenRockets * 1000 + Math.random() * rocketConfig.timeRandomness * 1000;
-    const xpos = Math.random() * width;
-    const ypos = height;
-    const targetY = Math.random() * (height - 50) + 50;
-    rockets.push({ position: [xpos, ypos], targetY: targetY, speed: rocketConfig.speed});
+
+
+    const endX = Math.random() * (width - 300) + 150;
+    const endY = Math.random() * (height - 300) + 150;
+
+    const startX = (Math.random() * 500 - 250) + endX;
+    const startY = height;
+
+    const xDist = endX - startX;
+    const yDist = endY - startY;
+
+    const angle = Math.atan2(yDist, xDist);
+
+    const direction = [Math.cos(angle), Math.sin(angle)];
+
+    rockets.push({ position: [startX, startY], targetY: endY, angle: angle, direction: direction, speed: rocketConfig.speed});
   }
 
   // Update position and remove
   for (let i = rockets.length - 1; i >= 0; i--) {
     const rocket = rockets[i];
-    rocket.position[1] -= rocket.speed * deltaTime;
+    rocket.position[0] += rocket.direction[0] * deltaTime * rocket.speed;
+    rocket.position[1] += rocket.direction[1] * deltaTime * rocket.speed;
+
+
     if (rocket.position[1] < rocket.targetY) {
       spawnExplosion(rocket.position);
       rockets.splice(i,1);
@@ -164,7 +179,7 @@ function updateRocket(now) {
   }
 
   for (let rocket of rockets) {
-    ctx.drawImage(rocketImg, rocket.position[0] - (rocketConfig.size[0] / 2), rocket.position[1] - (rocketConfig.size[1] / 2), rocketConfig.size[0], rocketConfig.size[1]);
+    drawImage(ctx, rocketImg, rocket.position[0] - (rocketConfig.size[0] / 2), rocket.position[1] - (rocketConfig.size[1] / 2), rocketConfig.size[0], rocketConfig.size[1], rocket.angle + Math.PI / 2);
   }
 }
 
@@ -305,4 +320,13 @@ function generateColor() {
     return Math.random() * (maxColor - minColor) + minColor;
   }
   return [g(), g(), g()];
+}
+
+function drawImage(ctx, image, x, y, w, h, degrees){
+  ctx.save();
+  ctx.translate(x+w/2, y+h/2);
+  ctx.rotate(degrees);
+  ctx.translate(-x-w/2, -y-h/2);
+  ctx.drawImage(image, x, y, w, h);
+  ctx.restore();
 }
