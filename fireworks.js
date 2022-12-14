@@ -81,7 +81,9 @@ function updateExplosions(now) {
       explosionsToRemove.push(explosion);
     }
     else if (explosion.timeLeft <= 2) {
-      canvas.style.opacity = explosion.timeLeft / 2;
+      const fadeOut = explosion.timeLeft / 2;
+      canvas.style.opacity = fadeOut;
+      canvas.style.filter = "blur(" + ((1 / fadeOut) - 1) + "px)";
     }
 
   }
@@ -92,6 +94,7 @@ function updateExplosions(now) {
     explosionToDelete.canvas.ctx.clearRect(0, 0, explosionToDelete.canvas.canvas.width, explosionToDelete.canvas.canvas.height);
     explosionToDelete.canvas.used = false;
     explosionToDelete.canvas.canvas.style.opacity = 1;
+    explosionToDelete.canvas.canvas.style.filter = "blur(0)";
   }
 }
 
