@@ -28,8 +28,7 @@ const canvases = [starCanvas, rocketCanvas];
 const explosionCanvases = [];
 
 for (let i = 0; i < numSimultaneousExplosions; i++) {
-  const canvas = createCanvas("explosion" + i, -50);
-  canvas.ctx.globalCompositeOperation = "lighter";
+  const canvas = createCanvas("explosion" + i, -50, function(canvas) {canvas.ctx.globalCompositeOperation = "lighter"});
   canvas.used = false;
   canvases.push(canvas);
   explosionCanvases.push(canvas);
@@ -160,7 +159,6 @@ window.requestAnimationFrame(runAnimations);
 function spawnExplosion(position) {
   for (let canvas of explosionCanvases) {
     if (canvas.used === false) {
-      canvas.ctx.globalCompositeOperation = "lighter";
       const explosion = {
         canvas: canvas,
         timeLeft: 5,
@@ -230,7 +228,7 @@ function updateCanvasSizes() {
     c.height = body.clientHeight;
 
     if (canvas.resizeFunc !== undefined) {
-      canvas.resizeFunc();
+      canvas.resizeFunc(canvas);
     }
   }
 }
