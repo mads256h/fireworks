@@ -61,7 +61,7 @@ function updateExplosions(now) {
     for (let i = 0; i < explosion.sparkles.length; i++) {
       const sparkle = explosion.sparkles[i];
       //
-      const f = (explosion.timeLeft + 1) / 6;
+      const f = (explosion.timeLeft) / 5;
       ctx.strokeStyle = rgbaToHex(Math.floor(sparkle.color[0] * f), Math.floor(sparkle.color[1] * f), Math.floor(sparkle.color[2] * f));
       ctx.beginPath();
       ctx.moveTo(sparkle.oldPosition[0], sparkle.oldPosition[1]);
