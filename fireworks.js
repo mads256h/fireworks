@@ -10,7 +10,7 @@ const rocketConfig = {
   size: [ 50, 100 ] // Size in pixels
 };
 
-const numSimultaneousExplosions = 10;
+const numSimultaneousExplosions = 5;
 
 const minColor = 10;
 const maxColor = 150;
