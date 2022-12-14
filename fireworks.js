@@ -15,6 +15,8 @@ const numSimultaneousExplosions = 5;
 const minColor = 0.1;
 const maxColor = 0.8;
 
+const flashTime = 250;
+
 const body = document.body;
 const canvasContainer = document.getElementById("canvas-container");
 const rocketImg = document.getElementById("rocket");
@@ -76,6 +78,28 @@ function updateExplosions(now) {
 
       const color = rgbaToString(sparkle.color[0] * f, sparkle.color[1] * f, sparkle.color[2] * f);
       drawLine(ctx, oldPositionX, oldPositionY, newPositionX, newPositionY, color, f * 3);
+
+
+
+      // Draw flashes
+      const flashTime2 = flashTime + sparkle.flashSpeedOffset;
+      const fadeFactor = explosion.timeLeft <= 1 ? explosion.timeLeft : 1;
+
+      let flashFactor = ((now + sparkle.flashOffset) % flashTime2) / flashTime2;
+      if (flashFactor < 0.5) {
+        flashFactor = 1 - flashFactor;
+      }
+      
+      flashFactor *= fadeFactor;
+
+
+      const flashesColor = rgbaToString(sparkle.flashColor[0] * flashFactor, sparkle.flashColor[1] * flashFactor, sparkle.flashColor[2] * flashFactor);
+      //const flashesColor = sparkle.flashColor;
+
+      const rCtx = rocketCanvas.ctx;
+
+      rCtx.fillStyle = flashesColor;
+      rCtx.fillRect(newPositionX - 1, newPositionY - 1, 2, 2);
     }
 
     explosion.gravityFactor += 9.82 * deltaTime * 1;
@@ -145,8 +169,8 @@ function updateRocket(now) {
 }
 
 function runAnimations(now) {
-  updateExplosions(now);
   updateRocket(now);
+  updateExplosions(now);
 
   window.requestAnimationFrame(runAnimations);
 }
@@ -164,8 +188,10 @@ function spawnExplosion(position) {
       };
 
 
-      const sparkleColor = [Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor];
-      const sparkleColor2 = [Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor];
+      const sparkleColor = generateColor();
+      const sparkleColor2 = generateColor();
+
+      const useSparkleColorForFlash = Math.random() > 0.5;
 
       for (let i = 0; i < 160; i++) {
         const angle = Math.random()*Math.PI*2;
@@ -173,7 +199,8 @@ function spawnExplosion(position) {
         const x = Math.cos(angle)*radius;
 				const y = Math.sin(angle)*radius;
 				const color = i % 2 == 0 ? sparkleColor : sparkleColor2;
-        explosion.sparkles.push({ color: color, position: [position[0], position[1]], direction: [x, y] });
+				const flashColor = useSparkleColorForFlash ? color : [1, 0.5, 0];
+        explosion.sparkles.push({ color: color, position: [position[0], position[1]], direction: [x, y], flashColor: flashColor, flashOffset: Math.random() * flashTime, flashSpeedOffset: Math.random() * 50});
       }
 
       canvas.used = true;
@@ -267,4 +294,15 @@ function smoothStep(x) {
 function rgbaToString(r, g, b, a) {
 
   return`rgba(${r * 255}, ${g * 255}, ${b * 255}, ${(a === undefined ? 1.0 : a) * 255})`;
+}
+
+function hslaToString(h, s, l, a) {
+  return `hsla(${h * 359}, ${s * 100}%, ${l * 100}%, ${a})`;
+}
+
+function generateColor() {
+  function g() {
+    return Math.random() * (maxColor - minColor) + minColor;
+  }
+  return [g(), g(), g()];
 }
