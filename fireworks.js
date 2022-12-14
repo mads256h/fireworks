@@ -12,8 +12,8 @@ const rocketConfig = {
 
 const numSimultaneousExplosions = 5;
 
-const minColor = 10;
-const maxColor = 150;
+const minColor = 0.1;
+const maxColor = 0.8;
 
 const body = document.body;
 const canvasContainer = document.getElementById("canvas-container");
@@ -58,25 +58,31 @@ function updateExplosions(now) {
     const ctx = explosion.canvas.ctx;
 
     const f = explosion.timeLeft / 5;
+    const directionFactor = deltaTime * 150 * f * f;
+    const gravityFactor = explosion.gravityFactor * deltaTime;
 
     // Update sparkles
     for (let i = 0; i < explosion.sparkles.length; i++) {
       const sparkle = explosion.sparkles[i];
-      //
-      ctx.strokeStyle = rgbaToHex(Math.floor(sparkle.color[0] * f), Math.floor(sparkle.color[1] * f), Math.floor(sparkle.color[2] * f));
-      ctx.beginPath();
-      ctx.moveTo(sparkle.oldPosition[0], sparkle.oldPosition[1]);
-      ctx.lineTo(sparkle.position[0], sparkle.position[1]);
-      ctx.stroke();
 
-      sparkle.oldPosition[0] = sparkle.position[0];
-      sparkle.oldPosition[1] = sparkle.position[1];
-      sparkle.position[0] += sparkle.direction[0] * deltaTime * 150 * f * f;
-      sparkle.position[1] += sparkle.direction[1] * deltaTime * 150 * f * f;
-      sparkle.position[1] += sparkle.gravityFactor;
-      sparkle.gravityFactor += 9.82 * deltaTime * 0.02;
+      const oldPositionX = sparkle.position[0];
+      const oldPositionY = sparkle.position[1];
+
+      const newPositionX = sparkle.position[0] + sparkle.direction[0] * directionFactor;
+      const newPositionY = sparkle.position[1] + sparkle.direction[1] * directionFactor + gravityFactor;
+
+      sparkle.position[0] = newPositionX;
+      sparkle.position[1] = newPositionY;
+
+
+      ctx.strokeStyle = rgbaToString(sparkle.color[0] * f, sparkle.color[1] * f, sparkle.color[2] * f);
+      ctx.beginPath();
+      ctx.moveTo(oldPositionX, oldPositionY);
+      ctx.lineTo(newPositionX, newPositionY);
+      ctx.stroke();
     }
 
+    explosion.gravityFactor += 9.82 * deltaTime * 0.5;
     explosion.timeLeft -= deltaTime;
 
     if (explosion.timeLeft <= 0) {
@@ -119,8 +125,6 @@ function updateRocket(now) {
   const deltaTime = (now - rocketCanvas.lastTime) / 1000;
   rocketCanvas.lastTime = now;
 
-  const timeBetweenRocketsMiliseconds = rocketConfig.timeBetweenRockets * 1000;
-
   if (now >= nextRocketTime) {
     nextRocketTime = now + rocketConfig.timeBetweenRockets * 1000 + Math.random() * rocketConfig.timeRandomness * 1000;
     const xpos = Math.random() * width;
@@ -160,20 +164,21 @@ function spawnExplosion(position) {
       const explosion = {
         canvas: canvas,
         timeLeft: 5,
-        sparkles: []
+        sparkles: [],
+        gravityFactor: 0
       };
 
 
-      const sparkleColor = [Math.floor(Math.random() * (maxColor - minColor)) + minColor, Math.floor(Math.random() * (maxColor - minColor)) + minColor, Math.floor(Math.random() * (maxColor - minColor)) + minColor];
-      const sparkleColor2 = [Math.floor(Math.random() * (maxColor - minColor)) + minColor, Math.floor(Math.random() * (maxColor - minColor)) + minColor, Math.floor(Math.random() * (maxColor - minColor)) + minColor];
+      const sparkleColor = [Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor];
+      const sparkleColor2 = [Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor, Math.random() * (maxColor - minColor) + minColor];
 
       for (let i = 0; i < 160; i++) {
         const angle = Math.random()*Math.PI*2;
-        const radius = 0.5 + (Math.random() - 0.5);
+        const radius = Math.random();
         const x = Math.cos(angle)*radius;
 				const y = Math.sin(angle)*radius;
 				const color = i % 2 == 0 ? sparkleColor : sparkleColor2;
-        explosion.sparkles.push({ color: color, oldPosition: [position[0], position[1]], position: [position[0], position[1]], direction: [x, y], gravityFactor: 0 });
+        explosion.sparkles.push({ color: color, position: [position[0], position[1]], direction: [x, y] });
       }
 
       canvas.used = true;
@@ -230,26 +235,7 @@ function updateCanvasSizes() {
   }
 }
 
-function rgbaToHex(r, g, b, a) {
-  function toHex(color) {
-    const str = color.toString(16);
-    if (str.length === 1) {
-      return "0" + str;
-    }
+function rgbaToString(r, g, b, a) {
 
-    return str;
-  }
-
-  const rHex = toHex(r);
-  const gHex = toHex(g);
-  const bHex = toHex(b);
-
-  const str = "#" + rHex + gHex + bHex;
-
-  if (a !== undefined) {
-    const aHex = toHex(a);
-    str += aHex;
-  }
-
-  return str;
+  return`rgba(${r * 255}, ${g * 255}, ${b * 255}, ${(a === undefined ? 1.0 : a) * 255})`;
 }
